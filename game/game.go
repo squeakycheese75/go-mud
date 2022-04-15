@@ -61,3 +61,7 @@ func readFromJson() *model.Story {
 	json.Unmarshal(byteValue, &story)
 	return &story
 }
+
+func (s *GameHandler) Help() {
+	s.user.Session.WriteLine("Boohoo, you need help!")
+}
