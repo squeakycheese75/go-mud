@@ -1,0 +1,15 @@
+{ "stages": 
+[
+{   
+	"page": 1,
+	"narrative": "The clamour of the excited spectators gadually fades behind you as vou venture deep lnto the gloom of the cavern tunnel. \r\nLarge crystals hang from the tunnel roof at twenty meter intervals, radiating a soft light, just enough for you to see your way.\r\nAs your eyes gradually become accustomed to the near-darkness, you begin to see movement all around.\r\nSpiders and beetles crawling up and down the chiselled walls disappear quickly into cracks and crevices as they sense your approach; rats and mice scurry along the floor ahead of you. Droplets o{ water drip into small pools with an eerie plopping sound which echoes down the tunnel The ail is cold, moist and dank.\r\nAfter walking slowly along the tunnel for about five minutes, you arive at a stone table standrng against the wall to your left",
+	"options": [
+	  {"choice": "(o)pen box?", "next": 270, "key": "o"},
+	  {"choice": "Go (n)orth",  "next": 66,  "key": "n"}
+	],
+	"events": []
+  }
+]
+}
+
+
