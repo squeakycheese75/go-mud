@@ -1,12 +1,16 @@
 package session
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
 	"strings"
 
+	"github.com/google/uuid"
+	"github.com/squeakycheese75/go-mud/data"
 	"github.com/squeakycheese75/go-mud/game"
+	"github.com/squeakycheese75/go-mud/game/characters"
 	"github.com/squeakycheese75/go-mud/model"
 )
 
@@ -31,7 +35,7 @@ func generateName() string {
 type Game struct {
 	user       *model.User
 	gameEngine *game.GameHandler
-	hero       *model.Hero
+	hero       *characters.Hero
 }
 
 type GameCommand struct {
@@ -39,17 +43,34 @@ type GameCommand struct {
 	command string
 }
 
-func parseInstuction(message string) GameCommand {
-	switch strings.ToLower(message) {
+type GameChoice struct {
+	stage int
+}
+
+func NameGenerator() string {
+	return fmt.Sprintf("user %v", rand.Intn(100))
+}
+
+func parseInstuction(message string, options []data.Option) (interface{}, error) {
+	msg := strings.ToLower(message)
+	switch msg {
 	case "c", "char", "character", "info":
-		return GameCommand{valid: true, command: "character"}
+		return GameCommand{command: "character", valid: true}, nil
 	case "h", "help":
-		return GameCommand{valid: true, command: "help"}
+		return GameCommand{command: "help", valid: true}, nil
 	case "i", "inventory", "inv":
-		return GameCommand{valid: true, command: "inventory"}
+		return GameCommand{command: "inventory", valid: true}, nil
+	case "l", "location", "loc":
+		return GameCommand{command: "location", valid: true}, nil
 	}
 
-	return GameCommand{valid: false}
+	for _, v := range options {
+		if msg == v.Key {
+			return GameChoice{stage: v.Next}, nil
+		}
+
+	}
+	return nil, errors.New("unknown message")
 }
 
 func (s *SessionHandler) Start() {
@@ -60,44 +81,54 @@ func (s *SessionHandler) Start() {
 
 		switch event := sessionEvent.Event.(type) {
 		case *model.SessionCreatedEvent:
-			// g, ok := games[session.SessionId()]
-			// if ok {
-			// 	log.Println("Loading gamre ")
-			// 	// g.user.Session = sessionEvent.Session
-			// 	break
-			// }
-			// Creates a new user
+			// Create a new user
 			user := &model.User{
-				Name:    generateName(),
-				Session: sessionEvent.Session}
-			s.users[session.SessionId()] = user
+				ID:      uuid.New(),
+				Name:    NameGenerator(),
+				Session: session}
+
+			log.Printf("\"%v\" joined", user.ID)
+			session.WriteLine(fmt.Sprintf("\"%v\" joined", user.ID))
+			s.users[session.SessionId()] = sessionEvent.User
+			// log.Printf("SessionId %v", session.SessionId())
 
 			// Create a new Character
-			hero := model.NewCharacter(user)
+			hero := characters.NewHero(user)
 
 			// Creates a new game instamce
+			session.WriteLine(fmt.Sprintln("Begin your Quest...."))
+
 			game := game.NewGameHandler(user)
-			games[session.SessionId()] = Game{
-				user,
-				game,
-				hero}
-			games[session.SessionId()].gameEngine.StartAdventure()
+			game.LoadStage(1)
+			games[session.SessionId()] = Game{user, game, hero}
 		case *model.SessionDisconnectedEvent:
 			log.Println("Received SessionDisconnectedEvent")
 		case *model.SessionInputEvent:
-			cmd := parseInstuction(event.Msg)
-			if !cmd.valid {
+			log.Printf("Received SessionInputEvent: %v", event.Msg)
+			ins, err := parseInstuction(event.Msg, games[session.SessionId()].gameEngine.GetOptions())
+			if err != nil {
 				games[session.SessionId()].user.Session.WriteLine("I don't understand!")
 				break
 			}
-			switch cmd.command {
-			case "character":
-				games[session.SessionId()].hero.Stats()
-			case "help":
-				games[session.SessionId()].gameEngine.Help()
-			case "inventory":
-				games[session.SessionId()].hero.Inventory()
+			switch ins := ins.(type) {
+			case GameCommand:
+				log.Println("It's a GameCommand")
+				switch ins.command {
+				case "character":
+					games[session.SessionId()].hero.Stats()
+				case "help":
+					games[session.SessionId()].gameEngine.Help()
+				case "inventory":
+					games[session.SessionId()].hero.Inventory()
+				case "location":
+					games[session.SessionId()].gameEngine.Show()
+				}
+			case GameChoice:
+				log.Println("It's a GameChoice")
+				games[session.SessionId()].gameEngine.NextStage(ins.stage)
+
 			}
 		}
+		session.Write(">> ")
 	}
 }

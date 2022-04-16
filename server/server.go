@@ -1,75 +1,30 @@
 package server
 
 import (
+	"fmt"
 	"log"
 	"net"
 
 	"github.com/squeakycheese75/go-mud/model"
 )
 
-// func generateName() string {
-// 	return fmt.Sprintf("User %d", rand.Intn(100)+1)
-// }
+var nextSessionId = 1
 
-// func HandleConnection(conn net.Conn, inputChannel chan model.ClientInput) error {
-// 	log.Println("Connected!")
-// 	buf := make([]byte, 4096)
-
-// 	session := &model.Session{Conn: conn}
-// 	user := &model.User{
-// 		Name:    generateName(),
-// 		Session: session}
-
-// 	inputChannel <- model.ClientInput{
-// 		User:    user,
-// 		Session: session,
-// 		Event:   &model.UserJoinedEvent{}}
-
-// 	for {
-// 		n, err := conn.Read(buf)
-// 		if err != nil {
-// 			return err
-// 		}
-// 		if n == 0 {
-// 			log.Println("Zero bytes, disconnected")
-// 			break
-// 		}
-// 		msg := buf[0 : n-2]
-// 		if !game.CheckInput(string(msg)) {
-// 			session.WriteLine("Invalid Input")
-// 			continue
-// 		}
-// 		inputChannel <- model.ClientInput{
-// 			User:    user,
-// 			Session: session,
-// 			Event: &model.MessageEvent{
-// 				Msg: string(msg),
-// 			}}
-
-// 		// response := fmt.Sprintf("You said: \"%s\"\r\n", msg)
-// 		// n, err = conn.Write([]byte(response))
-// 		// if err != nil {
-// 		// 	return err
-// 		// }
-// 		if n == 0 {
-// 			log.Println("Zero bytes, disconnected")
-// 			break
-// 		}
-// 	}
-// 	return nil
-// }
+func generateSessionId() string {
+	var sid = nextSessionId
+	nextSessionId++
+	return fmt.Sprintf("%d", sid)
+}
 
 func SessionHandleConnection(conn net.Conn, sessionEventChannel chan model.SessionEvent) error {
-	log.Println("Session established!")
+	log.Println("New connection established!")
 	buf := make([]byte, 4096)
-	session := &model.Session{Conn: conn}
-	// user := &model.User{
-	// 	Name:    generateName(),
-	// 	Session: session}
+	session := &model.Session{Conn: conn, Id: generateSessionId()}
 
 	sessionEventChannel <- model.SessionEvent{
 		Session: session,
-		Event:   &model.SessionCreatedEvent{}}
+		Event:   &model.SessionCreatedEvent{},
+	}
 	for {
 		n, err := conn.Read(buf)
 		if err != nil {
@@ -83,6 +38,7 @@ func SessionHandleConnection(conn net.Conn, sessionEventChannel chan model.Sessi
 			break
 		}
 		msg := buf[0 : n-2]
+		// log.Printf("Message Received: \"%v\" from user: \"%v\"", string(msg), user.Name)
 
 		sessionEventChannel <- model.SessionEvent{
 			Session: session,
@@ -107,12 +63,7 @@ func StartServer(sessionEventChannel chan model.SessionEvent) error {
 			log.Println("Error accepting connection", err)
 			continue
 		}
-		// go func() {
-		// 	if err := HandleConnection(conn, clientInputChannel); err != nil {
-		// 		log.Println("Error handling connection", err)
-		// 		return
-		// 	}
-		// }()
+
 		go func() {
 			if err := SessionHandleConnection(conn, sessionEventChannel); err != nil {
 				log.Println("Error handling connection", err)

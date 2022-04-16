@@ -2,17 +2,20 @@ package model
 
 import (
 	"net"
+
+	"github.com/google/uuid"
 )
 
 type User struct {
-	ID      uint
+	ID      uuid.UUID
 	Name    string
 	Session *Session
 }
 
 type Session struct {
-	id   string
+	Id   string
 	Conn net.Conn
+	User *User
 }
 
 func (s *Session) WriteLine(str string) error {
@@ -20,8 +23,13 @@ func (s *Session) WriteLine(str string) error {
 	return err
 }
 
+func (s *Session) Write(str string) error {
+	_, err := s.Conn.Write([]byte(str))
+	return err
+}
+
 func (s *Session) SessionId() string {
-	return s.id
+	return s.Id
 }
 
 type Dungeon struct {
@@ -37,6 +45,7 @@ type Stage struct {
 	Narrative string        `json:"narrative"`
 	Options   []Option      `json:"options"`
 	Events    []interface{} `json:"events"`
+	Action    string        `json:"action"`
 }
 
 type Option struct {

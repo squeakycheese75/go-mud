@@ -10,6 +10,7 @@ type UserJoinedEvent struct {
 type SessionEvent struct {
 	Session *Session
 	Event   interface{}
+	User    *User
 }
 
 type SessionCreatedEvent struct {

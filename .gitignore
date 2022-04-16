@@ -5,3 +5,4 @@ _*
 engine
 bin/
 .env
+.vscode/launch.json

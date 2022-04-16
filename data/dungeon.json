@@ -1,0 +1,38 @@
+{ "stages": 
+[
+{   
+	"page": 1,
+	"narrative": "The clamour of the excited spectators gadually fades behind you as vou venture deep lnto the gloom of the cavern tunnel. Large crystals hang from the tunnel roof at twenty meter intervals, radiating a soft light, just enough for you to see your way.  As your eyes gradually become accustomed to the near-darkness, you begin to see movement all around. Spiders and beetles crawling up and down the chiselled walls disappear quickly into cracks and crevices as they sense your approach; rats and mice scurry along the floor ahead of you. Droplets o{ water drip into small pools with an eerie plopping sound which echoes down the tunnel The ail is cold, moist and dank. After walking slowly along the tunnel for about five minutes, you arive at a stone table standrng against the wall to your left.",
+	"action": "choose",
+	"options": [
+	  {"choice": "(o)pen box?", "next": 270, "key": "o"},
+	  {"choice": "Go (n)orth",  "next": 66,  "key": "n"}
+	],
+	"events": []
+  },
+  {
+	"page": 66,
+	"narrative": "After walking down the tunnel for a few minutes, you come to a junction. A white arrow Painted on one wall points west- On the floor you can see wet {ootprints made by those who enteredbefore you. It is hard to be sure, but it looks as ihough three of them followed the direction ofthe arrow, while one decided to go east. ",
+	"action": "choose",
+	"options": [
+		 {"choice": "Head (w)est", "page": 293, "key": "w"},
+	  	{"choice": "Heead (e)ast", "page": 119, "key": "e"}
+	  ], 
+	"events": []
+  },
+	{
+	  "page": 293,
+	  "narrative": [
+	  "Following the three sets of wet footprints along the west passage of the tunnel, you soon afiive at a junction."
+		],
+	"action": "choose",
+	  "options": [
+		{"choice": "Head (w)est", "page": 137, "key": "w"},
+		{"choice": "Heead (n)orth", "page": 387, "key": "n"}
+		],
+	  "events": []
+	}
+]
+}
+
+

@@ -1,4 +1,4 @@
-package utils
+package dice
 
 import (
 	"math/rand"
