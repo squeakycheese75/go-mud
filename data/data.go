@@ -7,24 +7,6 @@ import (
 	"os"
 )
 
-type Option struct {
-	Choice string `json:"choice"`
-	Next   int    `json:"next"`
-	Key    string `json:"key"`
-}
-
-type Stage struct {
-	Page      int           `json:"page"`
-	Narrative string        `json:"narrative"`
-	Action    string        `json:"action"`
-	Options   []Option      `json:"options"`
-	Events    []interface{} `json:"events"`
-}
-
-type DungeonData struct {
-	Stages []Stage `json:"stages"`
-}
-
 func LoadData() *DungeonData {
 	// Open our jsonFile
 	jsonFile, err := os.Open("./data/dungeon.json")

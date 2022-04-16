@@ -7,31 +7,39 @@
 	"options": [
 	  {"choice": "(o)pen box?", "next": 270, "key": "o"},
 	  {"choice": "Go (n)orth",  "next": 66,  "key": "n"}
-	],
-	"events": []
+	]
   },
   {
 	"page": 66,
-	"narrative": "After walking down the tunnel for a few minutes, you come to a junction. A white arrow Painted on one wall points west- On the floor you can see wet {ootprints made by those who enteredbefore you. It is hard to be sure, but it looks as ihough three of them followed the direction ofthe arrow, while one decided to go east. ",
+	"narrative": "After walking down the tunnel for a few minutes, you come to a junction. A white arrow Painted on one wall points west.  On the floor you can see wet footprints made by those who entered before you. It is hard to be sure, but it looks as though three of them followed the direction of the arrow, while one decided to go east. ",
 	"action": "choose",
 	"options": [
-		 {"choice": "Head (w)est", "page": 293, "key": "w"},
-	  	{"choice": "Heead (e)ast", "page": 119, "key": "e"}
-	  ], 
-	"events": []
+		 {"choice": "Head (w)est", "next": 293, "key": "w"},
+	  	{"choice": "Head (e)ast", "next": 119, "key": "e"}
+	  ]
   },
 	{
 	  "page": 293,
-	  "narrative": [
-	  "Following the three sets of wet footprints along the west passage of the tunnel, you soon afiive at a junction."
-		],
+	  "narrative":
+	  "Following the three sets of wet footprints along the west passage of the tunnel, you soon arrive at a junction.",
 	"action": "choose",
 	  "options": [
-		{"choice": "Head (w)est", "page": 137, "key": "w"},
-		{"choice": "Heead (n)orth", "page": 387, "key": "n"}
-		],
-	  "events": []
-	}
+		{"choice": "Head (w)est", "next": 137, "key": "w"},
+		{"choice": "Head (n)orth", "next": 387, "key": "n"}
+		]
+	},
+	{
+        "page": 387,
+        "narrative": 
+        "Ahead you hear the thud of heavy footsteps approaching. Out of lhe gloom steps a large, primitive being dressed in animal hide and carrying a stone club. On seeing you, he grunts and spits onthe floor, then raises his club and lumbers on towards you, lookrng anything but friendly. You draw your sword and prepare to fight the CAVEMAN.",
+		"action": "fight",
+        "options": [
+           {"choice": "win", "next": 114, "key": "w"}
+          ], 
+        "characters": [
+          {"name": "Caveman", "type": "caveman", "stats": {"skill": 7, "stamina": 7}}
+        ]
+    }
 ]
 }
 
