@@ -28,16 +28,6 @@ func NewSessionHandler(dungeon *model.Dungeon, eventChannel chan model.SessionEv
 	}
 }
 
-func generateName() string {
-	return fmt.Sprintf("User %d", rand.Intn(100)+1)
-}
-
-type Game struct {
-	user       *model.User
-	gameEngine *game.GameHandler
-	hero       *characters.Hero
-}
-
 type GameCommand struct {
 	valid   bool
 	command string
@@ -51,8 +41,9 @@ func NameGenerator() string {
 	return fmt.Sprintf("user %v", rand.Intn(100))
 }
 
-func parseInstuction(message string, options []data.Option) (interface{}, error) {
+func ParseUserInstuction(message string, options []data.Option) (interface{}, error) {
 	msg := strings.ToLower(message)
+	// Check if it's a game command
 	switch msg {
 	case "c", "char", "character", "info":
 		return GameCommand{command: "character", valid: true}, nil
@@ -63,18 +54,18 @@ func parseInstuction(message string, options []data.Option) (interface{}, error)
 	case "l", "location", "loc":
 		return GameCommand{command: "location", valid: true}, nil
 	}
-
+	// Check if it's a stage option.
 	for _, v := range options {
 		if msg == v.Key {
 			return GameChoice{stage: v.Next}, nil
 		}
-
 	}
-	return nil, errors.New("unknown message")
+	return nil, errors.New("unknown user instruction")
 }
 
 func (s *SessionHandler) Start() {
-	games := make(map[string]Game)
+	// games := make(map[string]Game)
+	games := make(map[string]*game.GameHandler)
 
 	for sessionEvent := range s.eventChannel {
 		session := sessionEvent.Session
@@ -88,47 +79,40 @@ func (s *SessionHandler) Start() {
 				Session: session}
 
 			log.Printf("\"%v\" joined", user.ID)
-			session.WriteLine(fmt.Sprintf("\"%v\" joined", user.ID))
 			s.users[session.SessionId()] = sessionEvent.User
-			// log.Printf("SessionId %v", session.SessionId())
-
-			// Create a new Character
-			hero := characters.NewHero(user)
 
 			// Creates a new game instamce
 			session.WriteLine(fmt.Sprintln("Begin your Quest...."))
-
-			game := game.NewGameHandler(user)
+			game := game.NewGameHandler(user, characters.NewHero(user))
 			game.LoadStage(1)
-			games[session.SessionId()] = Game{user, game, hero}
+
+			games[session.SessionId()] = game
 		case *model.SessionDisconnectedEvent:
 			log.Println("Received SessionDisconnectedEvent")
 		case *model.SessionInputEvent:
-			log.Printf("Received SessionInputEvent: %v", event.Msg)
-			ins, err := parseInstuction(event.Msg, games[session.SessionId()].gameEngine.GetOptions())
+			game := games[session.SessionId()]
+			ins, err := ParseUserInstuction(event.Msg, games[session.SessionId()].GetOptions())
 			if err != nil {
-				games[session.SessionId()].user.Session.WriteLine("I don't understand!")
+				game.WriteLine("I don't understand!  Do you want (h)elp?")
 				break
 			}
 			switch ins := ins.(type) {
 			case GameCommand:
-				log.Println("It's a GameCommand")
 				switch ins.command {
 				case "character":
-					games[session.SessionId()].hero.Stats()
+					game.Hero.ShowStats()
 				case "help":
-					games[session.SessionId()].gameEngine.Help()
+					game.Help()
 				case "inventory":
-					games[session.SessionId()].hero.Inventory()
+					game.Hero.ShowInventory()
 				case "location":
-					games[session.SessionId()].gameEngine.Show()
+					game.ShowStage()
 				}
 			case GameChoice:
-				log.Println("It's a GameChoice")
-				games[session.SessionId()].gameEngine.NextStage(ins.stage)
-
+				game.NextStage(ins.stage)
 			}
 		}
+		// Check
 		session.Write(">> ")
 	}
 }

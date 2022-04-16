@@ -8,27 +8,35 @@ import (
 )
 
 func NewHero(u *model.User) *Hero {
-	u.Session.WriteLine("*** New Character Created ***")
-	stamina := dice.RollDice()
+	// Roll die
+	skill := (dice.RollDice() + 6)
+	stamina := (dice.RollDice() + dice.RollDice() + 12)
+	luck := (dice.RollDice() + 6)
 
 	hero := &Hero{
-		user:       u,
-		skill:      dice.RollDice(),
-		stamina:    stamina,
-		luck:       dice.RollDice(),
-		life:       stamina,
-		inventory:  []Inventory{},
+		user: u,
+		base: PlayerStats{
+			Skill:   skill,
+			Stamina: stamina,
+			Luck:    luck,
+		},
+		Stats: PlayerStats{
+			Skill:   skill,
+			Stamina: stamina,
+			Luck:    luck,
+		},
+		inventory:  Inventory{},
 		experience: Experience{monsterVanquished: 0},
 	}
-	hero.inventory = append(hero.inventory, Inventory{Name: "Healing Potion", quantity: 1})
-
-	hero.Stats()
 	return hero
 }
 
 type Inventory struct {
-	Name     string
-	quantity int
+	Items      []interface{}
+	Gold       int
+	Jewels     []interface{}
+	Potions    []interface{}
+	Provisions []interface{}
 }
 
 type Experience struct {
@@ -37,47 +45,59 @@ type Experience struct {
 
 type Hero struct {
 	user       *model.User
-	skill      int
-	luck       int
-	stamina    int
-	life       int
-	inventory  []Inventory
+	base       PlayerStats
+	Stats      PlayerStats
+	inventory  Inventory
 	experience Experience
+}
+
+type PlayerStats struct {
+	Skill   int
+	Stamina int
+	Luck    int
 }
 
 type Character interface {
 	Alive()
-	WriteLine(msg string)
 }
 
 func (h *Hero) Alive() bool {
-	return h.life > 0
+	return h.Stats.Stamina > 0
 }
 
 func (h *Hero) WriteLine(msg string) {
 	h.user.Session.WriteLine(msg)
 }
 
-func (h *Hero) Stats() {
+func (h *Hero) ShowStats() {
 	h.WriteLine("*** Character Info ***")
 	h.WriteLine(fmt.Sprintf("Name: %v", h.user.Name))
 	h.WriteLine("Stats:")
-	h.WriteLine(fmt.Sprintf(" - Skill: %v", h.skill))
-	h.WriteLine(fmt.Sprintf(" - Luck: %v", h.luck))
-	h.WriteLine(fmt.Sprintf(" - Stamina: %v of %v", h.life, h.stamina))
+	h.WriteLine(fmt.Sprintf(" - Skill: %v of %v", h.Stats.Skill, h.base.Skill))
+	h.WriteLine(fmt.Sprintf(" - Luck: %v of %v", h.Stats.Luck, h.base.Luck))
+	h.WriteLine(fmt.Sprintf(" - Stamina: %v of %v", h.Stats.Stamina, h.base.Stamina))
 
-	h.Inventory()
-	h.Info()
+	h.ShowInventory()
+	h.ShowInfo()
 }
 
-func (h *Hero) Inventory() {
+func (h *Hero) ShowInventory() {
 	h.WriteLine("Inventory:")
-	for _, v := range h.inventory {
-		h.WriteLine(fmt.Sprintf(" - %v x %v", v.quantity, v.Name))
-	}
+	h.WriteLine(fmt.Sprintf("Gold: %v", h.inventory.Gold))
+	// h.WriteLine(fmt.Sprintf("Jewels: %v", h.inventory.Jewels...))
+	// h.WriteLine(fmt.Sprintf("Items: %v", h.inventory.Items...))
+	// h.WriteLine(fmt.Sprintf("Potions: %v", h.inventory.Potions...))
 }
 
-func (h *Hero) Info() {
+func (h *Hero) ShowInfo() {
 	h.WriteLine("Experience:")
 	h.WriteLine(fmt.Sprintf(" - Monsters Vanquished:  %v", h.experience.monsterVanquished))
+}
+
+func (h *Hero) TakeHit() {
+	h.Stats.Stamina = (h.Stats.Stamina - 2)
+}
+
+func (h *Hero) FoeDefeated() {
+	h.experience.monsterVanquished = h.experience.monsterVanquished + 1
 }

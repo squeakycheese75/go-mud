@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/squeakycheese75/go-mud/data"
+	"github.com/squeakycheese75/go-mud/game/characters"
+	"github.com/squeakycheese75/go-mud/game/combat"
 	"github.com/squeakycheese75/go-mud/model"
 )
 
@@ -12,26 +14,27 @@ type GameHandler struct {
 	user     *model.User
 	location uint
 	stage    data.Stage
+	Hero     *characters.Hero
 }
 
-func NewGameHandler(user *model.User) *GameHandler {
+func NewGameHandler(user *model.User, hero *characters.Hero) *GameHandler {
 	return &GameHandler{
 		story:    data.LoadData(),
 		user:     user,
 		location: 0,
+		Hero:     hero,
 	}
 }
 
-func (h *GameHandler) LoadStage(page int) {
+func (h *GameHandler) LoadStage(stageNo int) error {
 	for _, stage := range h.story.Stages {
-		if stage.Page == page {
+		if stage.Page == stageNo {
 			h.stage = stage
-			h.user.Session.WriteLine(h.stage.Narrative)
-			h.ShowChoices(stage.Options)
-			return
+			h.ShowStage()
+			return nil
 		}
 	}
-	h.WriteLine("Error loading the next stage")
+	return fmt.Errorf("stage %v not found", stageNo)
 }
 
 func (h *GameHandler) ShowChoices(options []data.Option) {
@@ -48,7 +51,7 @@ func (h *GameHandler) GetOptions() []data.Option {
 	return h.stage.Options
 }
 
-func (h *GameHandler) Show() {
+func (h *GameHandler) ShowStage() {
 	h.WriteLine("")
 	h.WriteLine(h.stage.Narrative)
 	h.WriteLine("")
@@ -77,5 +80,16 @@ func (h *GameHandler) Write(msg string) {
 
 func (h *GameHandler) NextStage(page int) {
 	h.location = uint(page)
-	h.LoadStage(page)
+	err := h.LoadStage(page)
+	if err != nil {
+		h.user.Session.WriteLine(err.Error())
+	}
+	if h.stage.Action == "fight" {
+		h.user.Session.WriteLine("We are about to fight!!!!!!!!!!!")
+		for _, c := range h.stage.Characters {
+			h.user.Session.WriteLine(fmt.Sprintf("It's a %s", c.Name))
+			c := combat.NewBattle(h.Hero, characters.NewMonster(c.Name, c.Stats.Stamina, c.Stats.Skill), h.user)
+			c.Fight()
+		}
+	}
 }

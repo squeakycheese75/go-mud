@@ -38,7 +38,6 @@ func SessionHandleConnection(conn net.Conn, sessionEventChannel chan model.Sessi
 			break
 		}
 		msg := buf[0 : n-2]
-		// log.Printf("Message Received: \"%v\" from user: \"%v\"", string(msg), user.Name)
 
 		sessionEventChannel <- model.SessionEvent{
 			Session: session,

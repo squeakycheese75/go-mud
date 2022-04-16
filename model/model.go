@@ -35,21 +35,3 @@ func (s *Session) SessionId() string {
 type Dungeon struct {
 	Users []*User
 }
-
-type Story struct {
-	Stages []Stage `json:"stages"`
-}
-
-type Stage struct {
-	Page      int           `json:"page"`
-	Narrative string        `json:"narrative"`
-	Options   []Option      `json:"options"`
-	Events    []interface{} `json:"events"`
-	Action    string        `json:"action"`
-}
-
-type Option struct {
-	Choice string `json:"choice"`
-	Next   int    `json:"next"`
-	Key    string `json:"key"`
-}
